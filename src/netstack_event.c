@@ -1,11 +1,9 @@
 
 #include <contiki.h>
 #include <sys/log.h>
-#include <os/lib/sensors.h>
-// #include <batmon-sensor.h>
 #include <dev/leds.h>
 #include <stdio.h>
-#include "net/netstack.h"
+#include <net/netstack.h>
 
 /* Definición de procesos. */
 PROCESS(radio_sniffer_pr, "Radio on off");
