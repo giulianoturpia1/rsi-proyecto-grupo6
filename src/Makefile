@@ -1,6 +1,3 @@
-TARGET = cc26x0-cc13x0
-BOARD = launchpad/cc1350
-
 CONTIKI_PROJECT = netstack_event
 all: $(CONTIKI_PROJECT)
 

@@ -1,4 +1,10 @@
-
+/**
+* @file Este archivo define los eventos y procesos necesarios para
+*       manejar correctamente el encendido, apagado, transmición y
+*       recepción de la radio del sistema. Para esto define hanclers
+*       y modifica el radio_driver para hacer de sniffer.
+* @author Diego Fraga, Giuliano Turpia, Ignacio Valetutte.
+*/
 #include <contiki.h>
 #include <sys/log.h>
 #include <dev/leds.h>
