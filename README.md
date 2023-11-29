@@ -1,56 +1,61 @@
- # Visualizing the Dynamic Behaviour of a TSCH/RPL via LEDs
+# Visualización del Comportamiento Dinámico de una Red TSCH/RPL a través de LEDs
 
-## **Redes de Sensores Inalambricos** Project - 2023
+## Proyecto de Redes de Sensores Inalámbricos - 2023
 
-## Table of Contents
+### Tabla de Contenidos
 
-# 1. Project Summary
+- [1. Resumen del Proyecto](#1-resumen-del-proyecto)
+  * [1.1. Introducción](#11-introducción)
+  * [1.2. Motivación](#12-motivación)
+- [2. Instalación del Repositorio](#2-instalación-del-repositorio)
+- [3. Modo de Operación](#3-modo-de-operación)
+  * [3.1. Configuraciones de Línea de Comandos](#31-configuraciones-de-línea-de-comandos)
+  * [4. Ejemplos](#4-ejemplos)
 
-## 1.1. Introduction
+# 1. Resumen del Proyecto
 
-The main idea of the project is to visualize interactively, by utilizing LEDs, a network of wireless sensors that use TSCH/RPL. The goal is to observe the operation of the network at different stages of its life (network creation, message exchange, addressing, among others). The results could be used in an interactive environment to promote the better understanding of concepts, or in future iterations of the RSI course.
+## 1.1. Introducción
 
-# 1.2. Motivation
+La idea principal del proyecto es visualizar de manera interactiva, utilizando LEDs, una red de sensores inalámbricos que utilizan TSCH/RPL. El objetivo es observar el funcionamiento de la red en diferentes etapas de su vida (creación de red, intercambio de mensajes, direccionamiento, entre otros). Los resultados podrían ser utilizados en un entorno interactivo para promover una mejor comprensión de conceptos, o en futuras iteraciones del curso RSI.
 
-In an RPL network that uses TSCH, there are certain stages during its lifetime, such as the discovery of the DODAG, controlled message exchange passing through a root node, message transmission based on timeslots (TSCH), among others. These events, while they can last over time, there are  such as discovering the network, there are events with very short associated times, an example being message transmission/reception. TSCH network with Orchestra [1], or the path of a UDP message through the DODAG and how different messages are announced in a network (EB, DIO, DAO).
+## 1.2. Motivación
 
-The goal, then, is to have a system that allows visualizing the operation of a network of this kind using LEDs.
+En una red RPL que utiliza TSCH, existen ciertas etapas durante su vida, como el descubrimiento del DODAG, intercambio controlado de mensajes pasando por un nodo raíz, transmisión de mensajes basada en intervalos de tiempo (TSCH), entre otros. Estos eventos, aunque pueden durar un tiempo, hay eventos con tiempos asociados muy cortos, como por ejemplo la transmisión/recepción de mensajes. Hay varias opciones para un red red TSCH, pudiendo ser con Orchestra, o el camino de un mensaje UDP a través del DODAG y cómo se anuncian diferentes mensajes en una red (EB, DIO, DAO).
 
-# 2. Repository Installation
+El objetivo, entonces, es tener un sistema que permita visualizar el funcionamiento de una red de este tipo utilizando LEDs.
 
-Issue the following commands, making sure to have previously installled Contiki-NG(via Docker or natively), and set the Git-Hub credentials correctly:
+# 2. Instalación del Proyecto
+
+# 2.1. Instalación del Repositorio
+
+Ejecuta los siguientes comandos, asegurándote de haber instalado previamente Contiki-NG (a través de Docker o de manera nativa) y configurado correctamente las credenciales de GitHub:
 
 ```
 cd ~/contiki-ng && git clone git@github.com:giulianoturpia1/rsi-proyecto-grupo6.git
 ```
 
-# 3. Mode of Operation
+# 2.2. Instalación de Dependencias
 
-By default, the client and server nodes are going to operate in the role of a regular RPL/TSCH network
-Typically speaking, the network can have as many client nodes as needed, but a single server node.
-The server node from the start is configured as the root of the DODAG in the RPL network as that is the behaviour
-that we want to replicate(coordinator mode). If it is necessary(but not recommended), the root can be changed by issuing
-in the Contiki-NG shell of the new root(via serial ports):
+Para funcionar correctamente los siguientes proyectos en caso de necesitar re-compilar, se deben de reemplazar ciertas secciones de codigo del sistema operativo de Contiki-NG. En particular, dentro de la carpeta `patch` del repositorio se encuentra un pequeño instructivo para instalarlo. Esencialmente se debe de copiar los contenidos de la carpeta `patch` dentro de la ubicacion de Contiki-NG (por lo general en `~/contiki-ng`).
 
-+ make login PORT= < port > ; port could be: **/dev/ttyACM0**
-+ rpl-set-root 1
+# 3. Modo de Operación
 
-This is also going to automatically put it in TSCH coordinator mode.
+Por defecto, los nodos cliente y servidor operarán como una red RPL/TSCH regular. Típicamente, la red puede tener tantos nodos cliente como se necesite, pero un solo nodo servidor. Desde el inicio, el nodo servidor está configurado como la raíz del DODAG en la red RPL, ya que es el comportamiento que queremos replicar (modo coordinador). Si es necesario (pero no recomendado), la raíz puede cambiarse emitiendo los siguientes comandos en la shell de Contiki-NG del nuevo nodo raíz (a través de puertos serie):
 
-## 3.1. Command Line Settings
+```
+make login PORT=<puerto>; el puerto podría ser: /dev/ttyACM0
+rpl-set-root 1
+```
 
-The following command line options are available:
-* `MAKE_WITH_ORCHESTRA` - use the Contiki-NG Orchestra scheduler.
-* `MAKE_WITH_STORING_ROUTING` - use storing mode of the RPL routing protocol.
-* `MAKE_WITH_LINK_BASED_ORCHESTRA` - use the link-based rule of the Orchestra shheduler. This requires that both Orchestra and storing mode routing are enabled.
+Esto también lo pondrá automáticamente en modo coordinador TSCH.
 
-Use the vaule 1 for "on", 0 for "off". By default all options are "off".
+## 3.1. Configuraciones de Línea de Comandos
 
-# 4. Examples
+## 4. Ejemplos
 
-As was mentioned previously, the project is to have several resources available to visualize certain behaviour of a TSCH/RPL network. Refering to section [3. Mode of Operation](#3-mode-of-operation), there are available several projects to compile and then load into the desired network of nodes, those being:
+Como se mencionó anteriormente, el proyecto consiste en tener varios recursos disponibles para visualizar ciertos comportamientos de una red TSCH/RPL. Refiriéndose a la sección [3. Modo de Operación](#3-modo-de-operación), hay varios proyectos disponibles para compilar y luego cargar en la red deseada de nodos, que son:
 
-+ Visualize the Discovery/Update of the Network 
-+ Visualize the TX/RX of Nodes.
-+ Visualize the Channel Hopping of Nodes.
-+ Visualize TimeSlots and FrameSlots.
+- Visualizar el Descubrimiento/Actualización de la Red.
+- Visualizar el TX/RX de los Nodos.
+- Visualizar el Salto de Canales de los Nodos.
+- Visualizar Intervalos de Tiempo y Ranuras de Trama.

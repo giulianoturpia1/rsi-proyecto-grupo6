@@ -1,17 +1,17 @@
 /**
  * @file project-conf.h
  * @author Giuliano Turpia, Diego Fraga, Ignacio Valettute
- * @brief This is the config header for changing/setting values at pre
- * process level in the server node
- * @version 0.2
+ * @brief Esto es el encabezado de configuración para cambiar/establecer valores 
+ * a nivel de preproceso en el nodo cliente.
+ * @version 0.3
  * @date 09/11/2023
  * 
  * @copyright Copyright (c) 2023
  * 
  */
 
-#ifndef SERVER_CFG
-#define SERVER_CFG
+#ifndef UDP_CLIENT_CFG
+#define UDP_CLIENT_CFG
 
 /***********************Logging Level***********************/
 #define LOG_CONF_LEVEL_6LOWPAN  LOG_LEVEL_NONE
@@ -24,7 +24,7 @@
 /***********************Transport-Layer Defines***********************/
 
 #define UDP_PORT	5678
-#define SEND_INTERVAL (10*CLOCK_SECOND)
+#define SEND_INTERVAL (4*CLOCK_SECOND)
 #define WITH_SERVER_REPLY 1
 #define USABLE_RADIO_CHANNEL 16
 
@@ -34,6 +34,6 @@
 #define UIP_CONF_BUFFER_SIZE 240
 #define NETSTACK_MAX_ROUTE_ENTRIES 30
 #define SICSLOWPAN_CONF_FRAG 1*/
+#define NODE_AMOUNT 16 //Note that the Actual Node Amount ranges from [1, NODE_AMOUNT]
 
-#endif // SERVER_CFG
-
+#endif //UDP_CLIENT_CFG
