@@ -1,43 +1,44 @@
 /**
  * @file udp-client.c
  * @author Giuliano Turpia, Diego Fraga, Ignacio Valettute
- * @brief 
- * @version 0.3
- * @date 11-11-2023
+ * @version 0.4
+ * @date 11/11/2023
  * 
  * @copyright Copyright (c) 2023
  * 
  */
 
 /*---------------------------------------------------------------------------*/
-/*Contiki-NG Specific Includes*/
+/* Contiki-NG Includes Especificos */
 /*---------------------------------------------------------------------------*/
 #include <contiki.h> 
 #include <sys/log.h> //Logging 
 #include <net/netstack.h> //Network Stack
-#include <dev/leds.h>
 #include <simple-udp.h> //Transport Layer UDP 
 #include <sys/node-id.h> //Basic Node Handling Header
 #include <net/routing/routing.h>
-#include <dev/button-hal.h>//Button Management
-#include <dev/leds.h> //Led Management
-#include <uip.h> //To setup the IPV6 ip target
+#include <dev/button-hal.h> //Button Management
+#include <uip.h> //IPV6 IP target
 
 /*---------------------------------------------------------------------------*/
-/*C Imported Libs*/
+/* Librerias C */
 /*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include <stdlib.h>
 
 /*---------------------------------------------------------------------------*/
-/* App particular inclusions */
+/* App Particular Inclusions */
 /*---------------------------------------------------------------------------*/
 #include "project-conf.h"
-#define LOG_MODULE "Client"
-#define LOG_LEVEL LOG_LEVEL_DBG
 
 /*---------------------------------------------------------------------------*/
-/*Variables, Callback Defines*/
+/* Defines Logging Modulo */
+/*---------------------------------------------------------------------------*/
+#define LOG_MODULE "Client"
+#define LOG_LEVEL LOG_LEVEL_INFO
+
+/*---------------------------------------------------------------------------*/
+/* Variables */
 /*---------------------------------------------------------------------------*/
 static struct simple_udp_connection udp_client;
 static process_event_t event_count_button;
@@ -45,14 +46,16 @@ static radio_value_t ch_num;
 static struct etimer eTimerButton;
 
 /*---------------------------------------------------------------------------*/
-/*Declaracion Proceso/AutoStart*/
+/* Declaracion Proceso/AutoStart */
 /*---------------------------------------------------------------------------*/
 PROCESS(udp_client_process, "UDP client");
 PROCESS(node_select_process, "Node Selections");
 
 AUTOSTART_PROCESSES(&udp_client_process, &node_select_process);
 
-/* rx_callback definicion */
+/*---------------------------------------------------------------------------*/
+/* Callback Cliente UDP */
+/*---------------------------------------------------------------------------*/
 static void
 udp_rx_callback(struct simple_udp_connection *  c,
                 const uip_ipaddr_t *            sender_addr,
@@ -62,17 +65,14 @@ udp_rx_callback(struct simple_udp_connection *  c,
                 const uint8_t *                 data,
                 uint16_t                        datalen)
 {
-    
     LOG_INFO("Respuesta recibida '%.*s' de ", datalen, (char *) data);
     LOG_INFO_6ADDR(sender_addr);
     LOG_INFO_("\n");
 }
 
-
 /*---------------------------------------------------------------------------*/
-/*UDP CLIENT PROCESS*/
+/* Proceso Cliente UDP */
 /*---------------------------------------------------------------------------*/
-
 PROCESS_THREAD(udp_client_process, ev, data)
 {
     PROCESS_BEGIN();
@@ -90,7 +90,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
     /* Registrar la conexion - UDP sin IP especificada */
     simple_udp_register(&udp_client, UDP_PORT, NULL, UDP_PORT, udp_rx_callback);
 
-     /* Inicializar el Node ID */
+    /* Inicializar el Node ID */
     node_id_init();
 
     /* Valores de Canal */
@@ -135,7 +135,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
     PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-/*NODE SELECT PROCESS*/
+/* Proceso Seleccion de Nodo */
 /*---------------------------------------------------------------------------*/
 
 PROCESS_THREAD(node_select_process, ev, data){

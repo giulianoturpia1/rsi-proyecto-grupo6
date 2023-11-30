@@ -2,7 +2,7 @@
 <simconf version="2022112801">
   <simulation>
     <title>Slow Network</title>
-    <speedlimit>1.0</speedlimit>
+    <speedlimit>2.0</speedlimit>
     <randomseed>123456</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -40,7 +40,7 @@
       <mote>
         <interface_config>
           org.contikios.cooja.interfaces.Position
-          <pos x="-55.221601151036005" y="165.7111398792662" />
+          <pos x="-55.221601151036005" y="157.94581340298632" />
         </interface_config>
         <interface_config>
           org.contikios.cooja.contikimote.interfaces.ContikiMoteID
@@ -119,7 +119,7 @@
         </interface_config>
         <interface_config>
           org.contikios.cooja.contikimote.interfaces.ContikiRS232
-          <history>rpl-nbr~;rpl-set-root 1~;ip-addr~;rpl-set-root 1~;ip-addr~;rpl-nbr~;rpl-set-root 1~;rpl-nbr~;rpl-set-root 1~;rpl-nbr~;help~;rpl-nbr~;rpl-set-root 1~;rpl-nbr~;rpl-set-root 1~;</history>
+          <history>rpl-status~;rpl-nbr~;rpl-status~;rpl-nbr~;rpl-set-root 1~;ip-addr~;rpl-set-root 1~;ip-addr~;rpl-nbr~;rpl-set-root 1~;rpl-nbr~;rpl-set-root 1~;rpl-nbr~;help~;rpl-set-root 1~;</history>
         </interface_config>
       </mote>
     </motetype>
@@ -134,7 +134,7 @@
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <viewport>1.9316637936369234 0.0 0.0 1.9316637936369234 219.7263321167374 -40.491699143386946</viewport>
     </plugin_config>
-    <bounds x="1" y="1" height="400" width="400" z="4" />
+    <bounds x="1" y="1" height="400" width="400" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
@@ -143,7 +143,7 @@
       <formatted_time />
       <coloring />
     </plugin_config>
-    <bounds x="400" y="0" height="421" width="1250" z="7" />
+    <bounds x="400" y="0" height="421" width="1250" z="3" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
@@ -157,7 +157,7 @@
       <showRadioHW />
       <zoomfactor>5000.0</zoomfactor>
     </plugin_config>
-    <bounds x="3" y="734" height="218" width="1650" z="6" />
+    <bounds x="3" y="734" height="218" width="1650" z="5" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.MoteInterfaceViewer
@@ -166,7 +166,7 @@
       <interface>Button</interface>
       <scrollpos>0,0</scrollpos>
     </plugin_config>
-    <bounds x="539" y="433" height="300" width="350" z="5" />
+    <bounds x="539" y="433" height="300" width="350" z="6" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.MoteInterfaceViewer
@@ -184,7 +184,7 @@
       <interface>Button</interface>
       <scrollpos>0,0</scrollpos>
     </plugin_config>
-    <bounds x="935" y="439" height="300" width="350" z="1" />
+    <bounds x="935" y="439" height="300" width="350" z="4" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.MoteInterfaceViewer
@@ -193,6 +193,6 @@
       <interface>Serial port</interface>
       <scrollpos>0,0</scrollpos>
     </plugin_config>
-    <bounds x="28" y="426" height="300" width="350" z="3" />
+    <bounds x="28" y="426" height="300" width="350" z="1" />
   </plugin>
 </simconf>

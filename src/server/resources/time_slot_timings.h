@@ -1,7 +1,7 @@
 /**
  * @file time_slot_timings.h
  * @author Giuliano Turpia, Diego Fraga, Ignacio Valettute
- *@brief Archivo utilizado para guardar los timings asociados a TSCH
+ * @brief Archivo utilizado para guardar los timings asociados a TSCH
  * @version 0.2
  * @date 09/11/2023
  * 
@@ -9,11 +9,16 @@
  * 
  */
 
-/***********************Contiki-NG incldues para permitir manipulacion de TSCH***********************/
+/*---------------------------------------------------------------------------*/
+/* Contiki-NG Includes Especificos - Manipular TSCH */
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "net/mac/tsch/tsch.h"
+#include "net/mac/tsch/tsch-types.h"
 
-/***********************Time-slot Cambios************************/
+/*---------------------------------------------------------------------------*/
+/* Time-slot Cambios */
+/*---------------------------------------------------------------------------*/
 /*
     Los cambios están destinados a ser utilizados en nodos "remote", siendo la plataforma "zoul".
     Hay un valor predeterminado establecido presente en "os/net/mac/tsch/tsch-timeslot-timing.c" llamado "tsch_timeslot_timing_us_10000" que se utiliza como valor predeterminado 
@@ -32,15 +37,18 @@
 
     Se realizaron varios cambios en los archivos de tsch de Contiki_NG, ya que los valores máximos de tiempo no eran suficientes para ser establecidos en uint16_t, por lo que se cambiaron a uint32_t. Los archivos modificados fueron:
 
-    tsch.c -> líneas 96 y 99 respectivamente
-      static const uint32_t *tsch_default_timing_us;
-      uint32_t tsch_timing_us[tsch_ts_elements_count];
+    + tsch.c -> líneas 96 y 99 respectivamente a
+      * static const uint32_t *tsch_default_timing_us;
+      * uint32_t tsch_timing_us[tsch_ts_elements_count];
 
-    tsch-timeslot-timing.c -> varias líneas para implementar el factor STRETCH
+    + tsch-timeslot-timing.c -> varias líneas para implementar el factor STRETCH
 
-    tsch-types.h -> línea 145
-      typedef uint32_t tsch_timeslot_timing_usec[tsch_ts_elements_count];
+    + tsch-types.h -> línea 145 a
+      * typedef uint32_t tsch_timeslot_timing_usec[tsch_ts_elements_count];
 
+    Para las plataformas en particular se debe de acceder como se menciona arriba y modificar los valores de uint16_t:
+    + arch/cpu/cc26x0-cc13x0/rf-core/cc13xx-50kbps-tsch.h -> línea 39 a
+      * const uint32_t tsch_timing_cc13xx_50kbps[tsch_ts_elements_count];
 */
 
 #define SCALING_FACTOR 10
@@ -57,10 +65,12 @@
 #define LED_NET_TSCH_DEFAULT_TS_MAX_ACK            10000*SCALING_FACTOR
 #define LED_NET_TSCH_DEFAULT_TS_MAX_TX             21600*SCALING_FACTOR
 
-/*Timeslot longitud*/
+
+/*---------------------------------------------------------------------------*/
+/* Time-slot Cambios(microsegundos a segundos dependiendo del factor) */
+/*---------------------------------------------------------------------------*/
 #define LED_NET_TSCH_DEFAULT_TS_TIMESLOT_LENGTH  40000*SCALING_FACTOR
 
-/*TSCH timeslot timing (microsegundos a segundos dependiendo del factor)*/
 const tsch_timeslot_timing_usec tsch_timing_led_net = {
   LED_NET_TSCH_DEFAULT_TS_CCA_OFFSET,
   LED_NET_TSCH_DEFAULT_TS_CCA,
@@ -77,4 +87,4 @@ const tsch_timeslot_timing_usec tsch_timing_led_net = {
 };
 
 /*Definir como extern pues Contiki-NG lo precisa*/
-extern const uint16_t tsch_timing_led_net[];
+extern const uint32_t tsch_timing_led_net[];
