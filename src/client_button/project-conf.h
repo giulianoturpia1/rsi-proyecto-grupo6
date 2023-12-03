@@ -32,4 +32,11 @@
 #define USABLE_RADIO_CHANNEL 16
 #define NODE_AMOUNT 16 //Los nodos en realiad van de [1, NODE_AMOUNT]
 
+/*---------------------------------------------------------------------------*/
+/* Defines específicos del proyecto. */
+/*---------------------------------------------------------------------------*/
+#define CONFIG_VER_CANAL
+#define CANAL_0 16
+#define CANAL_1 17
+
 #endif //UDP_CLIENT_CFG

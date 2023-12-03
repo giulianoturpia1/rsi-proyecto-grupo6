@@ -36,6 +36,7 @@
 
 /*---------------------------------------------------------------------------*/
 /* Definicion de macro de configuracion. */
+/*---------------------------------------------------------------------------*/
 #ifdef CONFIG_VER_CANAL
 #ifdef CANAL_0
 #ifdef CANAL_1
@@ -194,9 +195,7 @@ int rx_handler(void)
 
     return rx_function();
 }
-#endif // _CONFIG_VER_CANAL
 
-#ifndef _CONFIG_VER_CANAL
 /* Función de blinking de LED verde (dedicada a evento tx) */
 static void tx_blink_timer_callback(void *ptr)
 {
@@ -327,7 +326,6 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
             estado = ON;
             leds_on(LEDS_ALL);
             #else
-            LOG_INFO("Coso\n");
             leds_on(LEDS_RED);
             #endif
         }

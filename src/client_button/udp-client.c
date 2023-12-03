@@ -35,6 +35,17 @@
 #include "project-conf.h"
 
 /*---------------------------------------------------------------------------*/
+/* Definicion de macro de configuracion. */
+/*---------------------------------------------------------------------------*/
+#ifdef CONFIG_VER_CANAL
+#ifdef CANAL_0
+#ifdef CANAL_1
+#define _CONFIG_VER_CANAL
+#endif // CANAL_1
+#endif // CANAL_0
+#endif // CONFIG_VER_CANAL 
+
+/*---------------------------------------------------------------------------*/
 /* Defines Logging Modulo */
 /*---------------------------------------------------------------------------*/
 #define LOG_MODULE "Client"
@@ -58,28 +69,35 @@ typedef enum estados
 /* Variables */
 /*---------------------------------------------------------------------------*/
 static struct simple_udp_connection udp_client;
-static process_event_t  event_count_button,
-                        radio_on_ev,
-                        radio_off_ev,
-                        radio_tx_ev,
-                        radio_rx_ev;
+static process_event_t  event_count_button;
+static process_event_t  radio_on_ev;
+static process_event_t  radio_off_ev;
+static process_event_t  radio_tx_ev;
+#ifndef _CONFIG_VER_CANAL
+static process_event_t  radio_rx_ev;
+#endif
+
 static radio_value_t ch_num;
 
 static struct etimer eTimerButton;
-static struct ctimer blink_timer;
 
+#ifndef _CONFIG_VER_CANAL
+static struct ctimer blink_timer;
 /* Período durante el cual los LEDs blinkean. */
 static const uint32_t BLINK_TIMEOUT = (2*CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
 
 /* El LED prende y apaga cada 100 ms. */
 static const uint32_t SIMPLE_BLINK_TIMEOUT = CLOCK_SECOND/5;
+#endif
 
 static int (* on_function)(void);
 static int (* off_function)(void);
 static int (* tx_function)(unsigned short);
+#ifndef _CONFIG_VER_CANAL
 static int (* rx_function)(void);
 
 static struct timer timer_general;
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* Declaracion Proceso/AutoStart */
@@ -152,6 +170,7 @@ int tx_handler(unsigned short length)
     return tx_function(length);
 }
 
+#ifndef _CONFIG_VER_CANAL
 /* Función de manejo de recepción de radio. */
 int rx_handler(void)
 {
@@ -195,8 +214,6 @@ static void rx_blink_timer_callback(void *ptr)
 {
     estados_t* estado = (estados_t*)(ptr);
 
-    LOG_INFO("TM rmnn: %d\n", (int)timer_remaining(&timer_general));
-
     do
     {
         if (timer_expired(&timer_general))
@@ -211,6 +228,7 @@ static void rx_blink_timer_callback(void *ptr)
 
     }while(0);
 }
+#endif // _CONFIG_VER_CANAL
 
 /*---------------------------------------------------------------------------*/
 /* Proceso Cliente UDP */
@@ -316,7 +334,12 @@ PROCESS_THREAD(node_select_process, ev, data)
 
 PROCESS_THREAD(radio_sniffer_pr, ev, data)
 {
+    #ifndef _CONFIG_VER_CANAL
     static estados_t estado = OFF;
+    #else
+    static radio_value_t canal;
+    #endif
+
 
     PROCESS_BEGIN();
 
@@ -324,19 +347,25 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
     radio_on_ev = process_alloc_event();
     radio_off_ev = process_alloc_event();
     radio_tx_ev = process_alloc_event();
+    #ifndef _CONFIG_VER_CANAL
     radio_rx_ev = process_alloc_event();
+    #endif
 
     /* Guardar funciones correspondientes al handler. */
     on_function = NETSTACK_RADIO.on;
     off_function = NETSTACK_RADIO.off;
     tx_function = NETSTACK_RADIO.transmit;
+    #ifndef _CONFIG_VER_CANAL
     rx_function = NETSTACK_RADIO.receiving_packet;
+    #endif
 
     /* Reasignar funciones colocando handlers definidos para el proyecto. */
     NETSTACK_RADIO.on = on_handler;
     NETSTACK_RADIO.off = off_handler;
     NETSTACK_RADIO.transmit = tx_handler;
+    #ifndef _CONFIG_VER_CANAL
     NETSTACK_RADIO.receiving_packet = rx_handler;
+    #endif
 
     leds_off(LEDS_ALL);
 
@@ -346,27 +375,46 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
         if (ev == radio_on_ev)
         {
             /* Handler para cuando radio se enciende. */
+            #ifndef _CONFIG_VER_CANAL
             estado = ON;
             leds_on(LEDS_ALL);
-
+            #else
+            leds_on(LEDS_RED);
+            #endif
         }
 
         if (ev == radio_off_ev)
         {
             /* Handler para cuando la radio se apaga. */
+            #ifndef _CONFIG_VER_CANAL
             estado = OFF;
             leds_off(LEDS_ALL);
+            #else
+            leds_off(LEDS_RED);
+            #endif
         }
 
         if (ev == radio_tx_ev)
         {
             /* Handler para cuando se transmite algo. */
             /* El canal por el cual se transmite está en (*data) */
+            #ifndef _CONFIG_VER_CANAL
             leds_off(LEDS_GREEN);
             ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, tx_blink_timer_callback, &estado);
             timer_set(&timer_general, BLINK_TIMEOUT/2);
+            #else
+            leds_on(LEDS_RED);
+            NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &canal);
+            if (canal == CANAL_1)
+            {
+                leds_off(LEDS_GREEN);
+            }else{
+                leds_on(LEDS_GREEN);
+            }
+            #endif
         }
 
+        #ifndef _CONFIG_VER_CANAL
         if (ev == radio_rx_ev)
         {
             /* Handler para cuando se recibe un paquete. */
@@ -375,6 +423,7 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
             ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, rx_blink_timer_callback, &estado);
             timer_set(&timer_general, BLINK_TIMEOUT/2);
         }
+        #endif
     }
 
     PROCESS_END();
