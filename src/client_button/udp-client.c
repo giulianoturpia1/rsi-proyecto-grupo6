@@ -53,7 +53,7 @@
 #define LOG_LEVEL LOG_LEVEL_INFO
 
 #ifndef STRETCH
-#define STRETCH 8
+#define STRETCH 10
 #endif
 
 #ifndef DEFAULT_RADIO_DIV
@@ -312,6 +312,8 @@ PROCESS_THREAD(node_select_process, ev, data)
         if(ev == button_hal_press_event){
             etimer_restart(&eTimerButton); //Was previously done with restart
             buttonPressCount++;
+            buttonPressCount = (buttonPressCount % (NODE_AMOUNT + 1));
+            buttonPressCount = (buttonPressCount == 0) ? 1 : buttonPressCount; 
             LOG_INFO("Seleccionado: Nodo %d\n", buttonPressCount);
         }
         if(etimer_expired(&eTimerButton) && buttonPressCount != 0){

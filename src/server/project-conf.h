@@ -34,11 +34,11 @@
 /* Defines específicos del proyecto. */
 /*---------------------------------------------------------------------------*/
 #define CONFIG_VER_CANAL
-#define CANAL_0 16
-#define CANAL_1 17
+#define CANAL_0 15
+#define CANAL_1 25
 
 #ifndef TSCH_CONF_DEFAULT_HOPPING_SEQUENCE
-#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE (uint8_t[]){ 16, 17 }
+#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE (uint8_t[]){ 15, 25 }
 #endif
 
 #ifndef TSCH_CONF_EB_PERIOD

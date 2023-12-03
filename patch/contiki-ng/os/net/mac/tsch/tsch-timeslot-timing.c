@@ -79,7 +79,7 @@
  */
 
 #ifndef STRETCH
-#define STRETCH 8
+#define STRETCH 10
 #endif
 
 const tsch_timeslot_timing_usec tsch_timeslot_timing_us_10000 = {

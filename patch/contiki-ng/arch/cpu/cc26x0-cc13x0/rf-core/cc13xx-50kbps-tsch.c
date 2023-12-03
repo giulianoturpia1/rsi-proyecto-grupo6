@@ -42,7 +42,7 @@
 #include "net/mac/tsch/tsch.h"
 
 #ifndef STRETCH
-#define STRETCH 8
+#define STRETCH 10
 #endif
 
 #define CC13XX_TSCH_DEFAULT_TS_CCA_OFFSET         1800

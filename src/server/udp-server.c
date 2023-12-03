@@ -91,7 +91,7 @@ static struct ctimer blink_timer;
 #endif
 
 #ifndef STRETCH
-#define STRETCH 8
+#define STRETCH 10
 #endif
 
 #ifndef DEFAULT_RADIO_DIV
