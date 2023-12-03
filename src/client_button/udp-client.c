@@ -12,14 +12,17 @@
 /* Contiki-NG Includes Especificos */
 /*---------------------------------------------------------------------------*/
 #include <contiki.h> 
-#include <sys/log.h> //Logging 
-#include <net/netstack.h> //Network Stack
-#include <simple-udp.h> //Transport Layer UDP 
-#include <sys/node-id.h> //Basic Node Handling Header
-#include <net/routing/routing.h>
 #include <dev/button-hal.h> //Button Management
-#include <uip.h> //IPV6 IP target
 #include <leds.h> //LED handling
+#include <net/netstack.h> //Network Stack
+#include <net/routing/routing.h>
+#include <simple-udp.h> //Transport Layer UDP 
+#include <sys/log.h> //Logging 
+#include <sys/ctimer.h>
+#include <sys/node-id.h> //Basic Node Handling Header
+#include <sys/etimer.h> //Event Timer
+#include <sys/timer.h>
+#include <uip.h> //IPV6 IP target
 
 /*---------------------------------------------------------------------------*/
 /* Librerias C */
@@ -33,6 +36,17 @@
 #include "project-conf.h"
 
 /*---------------------------------------------------------------------------*/
+/* Definicion de macro de configuracion. */
+/*---------------------------------------------------------------------------*/
+#ifdef CONFIG_VER_CANAL
+#ifdef CANAL_0
+#ifdef CANAL_1
+#define _CONFIG_VER_CANAL
+#endif // CANAL_1
+#endif // CANAL_0
+#endif // CONFIG_VER_CANAL 
+
+/*---------------------------------------------------------------------------*/
 /* Defines Logging Modulo */
 /*---------------------------------------------------------------------------*/
 #define LOG_MODULE "Client"
@@ -43,7 +57,7 @@
 #endif
 
 #ifndef DEFAULT_RADIO_DIV
-#define DEFAULT_RADIO_DIV 100
+#define DEFAULT_RADIO_DIV 1
 #endif
 
 typedef enum estados
@@ -56,26 +70,33 @@ typedef enum estados
 /* Variables */
 /*---------------------------------------------------------------------------*/
 static struct simple_udp_connection udp_client;
-static process_event_t  event_count_button,
-                        radio_on_ev,
-                        radio_off_ev,
-                        radio_tx_ev,
-                        radio_rx_ev;
-static radio_value_t ch_num;
+static process_event_t  event_count_button;
+static process_event_t  radio_on_ev;
+static process_event_t  radio_off_ev;
+static process_event_t  radio_tx_ev;
+#ifndef _CONFIG_VER_CANAL
+static process_event_t  radio_rx_ev;
+#endif
+
 static struct etimer eTimerButton;
 
+#ifndef _CONFIG_VER_CANAL
+static struct ctimer blink_timer;
 /* Período durante el cual los LEDs blinkean. */
-static const uint32_t BLINK_TIMEOUT = STRETCH*(CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
+static const uint32_t BLINK_TIMEOUT = (2*CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
 
 /* El LED prende y apaga cada 100 ms. */
-static const uint32_t SIMPLE_BLINK_TIMEOUT = CLOCK_SECOND/10;
+static const uint32_t SIMPLE_BLINK_TIMEOUT = CLOCK_SECOND/5;
+#endif
 
 static int (* on_function)(void);
 static int (* off_function)(void);
 static int (* tx_function)(unsigned short);
+#ifndef _CONFIG_VER_CANAL
 static int (* rx_function)(void);
 
-static struct stimer timer_general;
+static struct timer timer_general;
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* Declaracion Proceso/AutoStart */
@@ -148,6 +169,7 @@ int tx_handler(unsigned short length)
     return tx_function(length);
 }
 
+#ifndef _CONFIG_VER_CANAL
 /* Función de manejo de recepción de radio. */
 int rx_handler(void)
 {
@@ -173,18 +195,12 @@ static void tx_blink_timer_callback(void *ptr)
 
     do
     {
-        if (stimer_expired(&timer_general))
+        if (timer_expired(&timer_general))
         {
-            if (*estado == OFF)
-            {
-                leds_off(LEDS_ALL);
-            }
-
-            if (*estado == ON)
-            {
-                leds_on(LEDS_ALL);
-            }
+        leds_off(LEDS_ALL);
             break;
+        }else{
+            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT/2, tx_blink_timer_callback, estado);
         }
 
         leds_toggle(LEDS_GREEN);
@@ -199,24 +215,19 @@ static void rx_blink_timer_callback(void *ptr)
 
     do
     {
-        if (stimer_expired(&timer_general))
+        if (timer_expired(&timer_general))
         {
-            if (*estado == OFF)
-            {
-                leds_off(LEDS_ALL);
-            }
-
-            if (*estado == ON)
-            {
-                leds_on(LEDS_ALL);
-            }
+            leds_off(LEDS_ALL);
             break;
+        }else{
+            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT/2, rx_blink_timer_callback, estado);
         }
 
         leds_toggle(LEDS_RED);
 
     }while(0);
 }
+#endif // _CONFIG_VER_CANAL
 
 /*---------------------------------------------------------------------------*/
 /* Proceso Cliente UDP */
@@ -240,11 +251,6 @@ PROCESS_THREAD(udp_client_process, ev, data)
 
     /* Inicializar el Node ID */
     node_id_init();
-
-    /* Valores de Canal */
-    NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, USABLE_RADIO_CHANNEL);
-    NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &ch_num);
-    LOG_INFO("Rf channel: %d\n", ch_num);
 
     while(1){
         /* Timer set y wait. */
@@ -322,8 +328,12 @@ PROCESS_THREAD(node_select_process, ev, data)
 
 PROCESS_THREAD(radio_sniffer_pr, ev, data)
 {
-    static struct ctimer blink_timer;
+    #ifndef _CONFIG_VER_CANAL
     static estados_t estado = OFF;
+    #else
+    static radio_value_t canal;
+    #endif
+
 
     PROCESS_BEGIN();
 
@@ -331,19 +341,27 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
     radio_on_ev = process_alloc_event();
     radio_off_ev = process_alloc_event();
     radio_tx_ev = process_alloc_event();
+    #ifndef _CONFIG_VER_CANAL
     radio_rx_ev = process_alloc_event();
+    #endif
 
     /* Guardar funciones correspondientes al handler. */
     on_function = NETSTACK_RADIO.on;
     off_function = NETSTACK_RADIO.off;
     tx_function = NETSTACK_RADIO.transmit;
+    #ifndef _CONFIG_VER_CANAL
     rx_function = NETSTACK_RADIO.receiving_packet;
+    #endif
 
     /* Reasignar funciones colocando handlers definidos para el proyecto. */
     NETSTACK_RADIO.on = on_handler;
     NETSTACK_RADIO.off = off_handler;
     NETSTACK_RADIO.transmit = tx_handler;
+    #ifndef _CONFIG_VER_CANAL
     NETSTACK_RADIO.receiving_packet = rx_handler;
+    #endif
+
+    leds_off(LEDS_ALL);
 
     while (1)
     {
@@ -351,35 +369,55 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
         if (ev == radio_on_ev)
         {
             /* Handler para cuando radio se enciende. */
+            #ifndef _CONFIG_VER_CANAL
             estado = ON;
             leds_on(LEDS_ALL);
-
+            #else
+            leds_on(LEDS_RED);
+            #endif
         }
 
         if (ev == radio_off_ev)
         {
             /* Handler para cuando la radio se apaga. */
+            #ifndef _CONFIG_VER_CANAL
             estado = OFF;
             leds_off(LEDS_ALL);
+            #else
+            leds_off(LEDS_RED);
+            #endif
         }
 
         if (ev == radio_tx_ev)
         {
             /* Handler para cuando se transmite algo. */
             /* El canal por el cual se transmite está en (*data) */
+            #ifndef _CONFIG_VER_CANAL
             leds_off(LEDS_GREEN);
             ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, tx_blink_timer_callback, &estado);
-            stimer_set(&timer_general, BLINK_TIMEOUT);
+            timer_set(&timer_general, BLINK_TIMEOUT/2);
+            #else
+            leds_on(LEDS_RED);
+            NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &canal);
+            if (canal == CANAL_1)
+            {
+                leds_off(LEDS_GREEN);
+            }else{
+                leds_on(LEDS_GREEN);
+            }
+            #endif
         }
 
+        #ifndef _CONFIG_VER_CANAL
         if (ev == radio_rx_ev)
         {
             /* Handler para cuando se recibe un paquete. */
             /* El canal por el cual se transmite está en (*data) */
             leds_off(LEDS_RED);
             ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, rx_blink_timer_callback, &estado);
-            stimer_set(&timer_general, BLINK_TIMEOUT);
+            timer_set(&timer_general, BLINK_TIMEOUT/2);
         }
+        #endif
     }
 
     PROCESS_END();

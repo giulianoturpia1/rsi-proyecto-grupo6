@@ -40,6 +40,7 @@ Para funcionar correctamente los siguientes proyectos en caso de necesitar re-co
 
 # 3. Modo de Operación
 
+## 3.1. Configuración de red
 Por defecto, los nodos cliente y servidor operarán como una red RPL/TSCH regular. Típicamente, la red puede tener tantos nodos cliente como se necesite, pero un solo nodo servidor. Desde el inicio, el nodo servidor está configurado como la raíz del DODAG en la red RPL, ya que es el comportamiento que queremos replicar (modo coordinador). Si es necesario (pero no recomendado), la raíz puede cambiarse emitiendo los siguientes comandos en la shell de Contiki-NG del nuevo nodo raíz (a través de puertos serie):
 
 ```
@@ -49,7 +50,25 @@ rpl-set-root 1
 
 Esto también lo pondrá automáticamente en modo coordinador TSCH.
 
-## 3.1. Configuraciones de Línea de Comandos
+## 3.2. Configuración de visualización
+
+El proyecto permite alternar entre modo de visualización de transmisión/recepción (Tx/Rx) en la red TSCH como también modo de visualización de canal de red TSCH. Esto puede ser seteado desde el project-conf.h de cada nodo, lo que permite generar binarios compilados en los que se vea el canal de comunicación, como compilados donde se vea el estado del nodo.
+
+### 3.2.1 Modo de visualización Tx/Rx
+Este es el modo de visualización predeterminado de la red. Prende ambos LEDs (rojo y verde) si la radio se prende, y los apaga cuando la radio se apaga. En el momento que el nodo comienza a transmitir, el mismo hace parpadear su LED verde. Si el nodo está en proceso de recepción, parpadea el LED rojo.
+Para el funcionamiento de este modo es necesario que no esté definida cualquiera de las siguientes macros:
+- **CONFIG_VER_CANAL**
+- **CANAL_0**
+- **CANAL_1**
+De no estar definido cualquiera de ellos, el binario compilado mostrará el estado Tx/Rx.
+
+### 3.2.2 Modo de visualización de canal
+Al seleccionar este modo, el nodo mostrará el estado de prendido/apagado con el LED rojo, mientras que con el LED verde indicará el canal por el cual se está comunicando. La red TSCH debe tener únicamente 2 canales por los cuales transmitir. En caso de estarse comunicando por el definido como *CANAL_0*, el LED verde se prenderá, mientras que si está comunicandose por el definido como *CANAL_1*, el LED verde se apagará.
+
+Para activar este modo de funcionamiento, se deben definir las siguientes macros en el archivo *project-conf.h* del nodo en el cual se quiere activar:
+- **CONFIG_VER_CANAL** No necesita tomar ningún valor en específico.
+- **CANAL_0** Necesita tomar el valor de uno de los canales utilizados en la red TSCH.
+- **CANAL_1** Necesita tomar el valor del otro canal definido por la red TSCH.
 
 ## 4. Ejemplos
 
