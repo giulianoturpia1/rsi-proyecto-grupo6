@@ -19,6 +19,7 @@
 #include <net/routing/routing.h>
 #include <dev/button-hal.h> //Button Management
 #include <uip.h> //IPV6 IP target
+#include <leds.h> //LED handling
 
 /*---------------------------------------------------------------------------*/
 /* Librerias C */
@@ -55,12 +56,16 @@ typedef enum estados
 /* Variables */
 /*---------------------------------------------------------------------------*/
 static struct simple_udp_connection udp_client;
-static process_event_t event_count_button;
+static process_event_t  event_count_button,
+                        radio_on_ev,
+                        radio_off_ev,
+                        radio_tx_ev,
+                        radio_rx_ev;
 static radio_value_t ch_num;
 static struct etimer eTimerButton;
 
 /* Período durante el cual los LEDs blinkean. */
-static const uint32_t BLINK_TIMEOUT = ENL_FACTOR*(CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
+static const uint32_t BLINK_TIMEOUT = STRETCH*(CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
 
 /* El LED prende y apaga cada 100 ms. */
 static const uint32_t SIMPLE_BLINK_TIMEOUT = CLOCK_SECOND/10;
@@ -77,8 +82,9 @@ static struct stimer timer_general;
 /*---------------------------------------------------------------------------*/
 PROCESS(udp_client_process, "UDP client");
 PROCESS(node_select_process, "Node Selections");
+PROCESS(radio_sniffer_pr, "Radio Sniffer");
 
-AUTOSTART_PROCESSES(&udp_client_process, &node_select_process);
+AUTOSTART_PROCESSES(&udp_client_process, &node_select_process, &radio_sniffer_pr);
 
 /*---------------------------------------------------------------------------*/
 /* Callback Cliente UDP */
