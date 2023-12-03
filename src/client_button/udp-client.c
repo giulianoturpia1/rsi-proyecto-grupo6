@@ -12,14 +12,16 @@
 /* Contiki-NG Includes Especificos */
 /*---------------------------------------------------------------------------*/
 #include <contiki.h> 
-#include <sys/log.h> //Logging 
-#include <net/netstack.h> //Network Stack
-#include <simple-udp.h> //Transport Layer UDP 
-#include <sys/node-id.h> //Basic Node Handling Header
-#include <net/routing/routing.h>
 #include <dev/button-hal.h> //Button Management
-#include <uip.h> //IPV6 IP target
 #include <leds.h> //LED handling
+#include <net/netstack.h> //Network Stack
+#include <net/routing/routing.h>
+#include <simple-udp.h> //Transport Layer UDP 
+#include <sys/log.h> //Logging 
+#include <sys/ctimer.h>
+#include <sys/node-id.h> //Basic Node Handling Header
+#include <sys/timer.h>
+#include <uip.h> //IPV6 IP target
 
 /*---------------------------------------------------------------------------*/
 /* Librerias C */
@@ -43,7 +45,7 @@
 #endif
 
 #ifndef DEFAULT_RADIO_DIV
-#define DEFAULT_RADIO_DIV 100
+#define DEFAULT_RADIO_DIV 1
 #endif
 
 typedef enum estados
@@ -62,20 +64,22 @@ static process_event_t  event_count_button,
                         radio_tx_ev,
                         radio_rx_ev;
 static radio_value_t ch_num;
+
 static struct etimer eTimerButton;
+static struct ctimer blink_timer;
 
 /* Período durante el cual los LEDs blinkean. */
-static const uint32_t BLINK_TIMEOUT = STRETCH*(CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
+static const uint32_t BLINK_TIMEOUT = (2*CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
 
 /* El LED prende y apaga cada 100 ms. */
-static const uint32_t SIMPLE_BLINK_TIMEOUT = CLOCK_SECOND/10;
+static const uint32_t SIMPLE_BLINK_TIMEOUT = CLOCK_SECOND/5;
 
 static int (* on_function)(void);
 static int (* off_function)(void);
 static int (* tx_function)(unsigned short);
 static int (* rx_function)(void);
 
-static struct stimer timer_general;
+static struct timer timer_general;
 
 /*---------------------------------------------------------------------------*/
 /* Declaracion Proceso/AutoStart */
@@ -173,18 +177,12 @@ static void tx_blink_timer_callback(void *ptr)
 
     do
     {
-        if (stimer_expired(&timer_general))
+        if (timer_expired(&timer_general))
         {
-            if (*estado == OFF)
-            {
-                leds_off(LEDS_ALL);
-            }
-
-            if (*estado == ON)
-            {
-                leds_on(LEDS_ALL);
-            }
+        leds_off(LEDS_ALL);
             break;
+        }else{
+            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT/2, tx_blink_timer_callback, estado);
         }
 
         leds_toggle(LEDS_GREEN);
@@ -197,20 +195,16 @@ static void rx_blink_timer_callback(void *ptr)
 {
     estados_t* estado = (estados_t*)(ptr);
 
+    LOG_INFO("TM rmnn: %d\n", (int)timer_remaining(&timer_general));
+
     do
     {
-        if (stimer_expired(&timer_general))
+        if (timer_expired(&timer_general))
         {
-            if (*estado == OFF)
-            {
-                leds_off(LEDS_ALL);
-            }
-
-            if (*estado == ON)
-            {
-                leds_on(LEDS_ALL);
-            }
+            leds_off(LEDS_ALL);
             break;
+        }else{
+            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT/2, rx_blink_timer_callback, estado);
         }
 
         leds_toggle(LEDS_RED);
@@ -322,7 +316,6 @@ PROCESS_THREAD(node_select_process, ev, data)
 
 PROCESS_THREAD(radio_sniffer_pr, ev, data)
 {
-    static struct ctimer blink_timer;
     static estados_t estado = OFF;
 
     PROCESS_BEGIN();
@@ -344,6 +337,8 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
     NETSTACK_RADIO.off = off_handler;
     NETSTACK_RADIO.transmit = tx_handler;
     NETSTACK_RADIO.receiving_packet = rx_handler;
+
+    leds_off(LEDS_ALL);
 
     while (1)
     {
@@ -369,7 +364,7 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
             /* El canal por el cual se transmite está en (*data) */
             leds_off(LEDS_GREEN);
             ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, tx_blink_timer_callback, &estado);
-            stimer_set(&timer_general, BLINK_TIMEOUT);
+            timer_set(&timer_general, BLINK_TIMEOUT/2);
         }
 
         if (ev == radio_rx_ev)
@@ -378,7 +373,7 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
             /* El canal por el cual se transmite está en (*data) */
             leds_off(LEDS_RED);
             ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, rx_blink_timer_callback, &estado);
-            stimer_set(&timer_general, BLINK_TIMEOUT);
+            timer_set(&timer_general, BLINK_TIMEOUT/2);
         }
     }
 

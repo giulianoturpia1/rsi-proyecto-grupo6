@@ -38,7 +38,7 @@
 /* Defines Logging Modulo */
 /*---------------------------------------------------------------------------*/
 #define LOG_MODULE "Server"
-#define LOG_LEVEL LOG_LEVEL_DBG
+#define LOG_LEVEL LOG_LEVEL_NONE
 
 typedef enum estados
 {
@@ -325,7 +325,7 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
             /* El canal por el cual se transmite está en (*data) */
             leds_off(LEDS_RED);
             ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, rx_blink_timer_callback, &estado);
-            timer_set(&timer_general, BLINK_TIMEOUT/20);
+            timer_set(&timer_general, BLINK_TIMEOUT/2);
         }
     }
 
