@@ -78,21 +78,23 @@
  * (TxOffset - (RxWait / 2)) instead
  */
 
-#define STRETCH 10
+#ifndef STRETCH
+#define STRETCH 8
+#endif
 
 const tsch_timeslot_timing_usec tsch_timeslot_timing_us_10000 = {
-   (uint32_t) 1800*STRETCH, /* CCAOffset */
-    (uint32_t) 128*STRETCH, /* CCA */
-   (uint32_t) 2120*STRETCH, /* TxOffset */
-  (uint32_t) (2120 - (TSCH_CONF_RX_WAIT / 2))*STRETCH, /* RxOffset */
-    (uint32_t) 800*STRETCH, /* RxAckDelay */
-   (uint32_t) 1000*STRETCH, /* TxAckDelay */
-  (uint32_t) TSCH_CONF_RX_WAIT*STRETCH, /* RxWait */
-    (uint32_t) 400*STRETCH, /* AckWait */
-    (uint32_t) 192*STRETCH, /* RxTx */
-   (uint32_t) 2400*STRETCH, /* MaxAck */
-   (uint32_t) 4256*STRETCH, /* MaxTx */
-  (uint32_t)10000*STRETCH, /* TimeslotLength */
+    (uint32_t) 1800*STRETCH, /* CCAOffset */
+    (uint32_t)  128*STRETCH, /* CCA */
+    (uint32_t) 2120*STRETCH, /* TxOffset */
+   (uint32_t) (2120 - (TSCH_CONF_RX_WAIT / 2))*STRETCH, /* RxOffset */
+     (uint32_t) 800*STRETCH, /* RxAckDelay */
+    (uint32_t) 1000*STRETCH, /* TxAckDelay */
+   (uint32_t) TSCH_CONF_RX_WAIT*STRETCH, /* RxWait */
+     (uint32_t) 400*STRETCH, /* AckWait */
+     (uint32_t) 192*STRETCH, /* RxTx */
+    (uint32_t) 2400*STRETCH, /* MaxAck */
+    (uint32_t) 4256*STRETCH, /* MaxTx */
+  (uint32_t) 10000*STRETCH, /* TimeslotLength */
 };
 
 /** @} */

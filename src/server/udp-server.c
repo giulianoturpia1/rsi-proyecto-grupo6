@@ -74,7 +74,7 @@ static int (* rx_function)(void);
 static struct stimer timer_general;
 
 #ifndef STRETCH
-#define STRETCH 10
+#define STRETCH 8
 #endif
 
 #ifndef DEFAULT_RADIO_DIV

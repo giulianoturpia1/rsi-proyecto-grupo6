@@ -39,7 +39,7 @@
 #define LOG_LEVEL LOG_LEVEL_INFO
 
 #ifndef STRETCH
-#define STRETCH 10
+#define STRETCH 8
 #endif
 
 #ifndef DEFAULT_RADIO_DIV
