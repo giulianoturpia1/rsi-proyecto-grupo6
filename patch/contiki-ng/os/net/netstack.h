@@ -97,8 +97,8 @@
 #else /* NETSTACK_CONF_RADIO */
 #define NETSTACK_RADIO   nullradio_driver
 #endif /* NETSTACK_CONF_RADIO */
-radio_driver
-/* Framer selection. The framer is used by the MAC implementation
+
+/* Framer selection. The framer is used by the MACS implementation
    to build and parse frames. */
 #ifdef NETSTACK_CONF_FRAMER
 #define NETSTACK_FRAMER NETSTACK_CONF_FRAMER
