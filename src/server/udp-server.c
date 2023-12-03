@@ -19,7 +19,7 @@
 #include <net/routing/routing.h> //Setear el nodo como root de la red RPL automaticamente
 #include <dev/leds.h> //Led Management
 #include <sys/ctimer.h>
-#include <sys/stimer.h>
+#include <sys/timer.h>
 
 /*---------------------------------------------------------------------------*/
 /* Librerias C */
@@ -38,7 +38,7 @@
 /* Defines Logging Modulo */
 /*---------------------------------------------------------------------------*/
 #define LOG_MODULE "Server"
-#define LOG_LEVEL LOG_LEVEL_INFO
+#define LOG_LEVEL LOG_LEVEL_DBG
 
 typedef enum estados
 {
@@ -71,21 +71,22 @@ static int (* off_function)(void);
 static int (* tx_function)(unsigned short);
 static int (* rx_function)(void);
 
-static struct stimer timer_general;
+static struct timer timer_general;
+static struct ctimer blink_timer;
 
 #ifndef STRETCH
 #define STRETCH 10
 #endif
 
 #ifndef DEFAULT_RADIO_DIV
-#define DEFAULT_RADIO_DIV 100
+#define DEFAULT_RADIO_DIV 1
 #endif
 
 /* Período durante el cual los LEDs blinkean. */
-static const uint32_t BLINK_TIMEOUT = STRETCH*(CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
+static const uint32_t BLINK_TIMEOUT = (2*CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
 
-/* El LED prende y apaga cada 100 ms. */
-static const uint32_t SIMPLE_BLINK_TIMEOUT = CLOCK_SECOND/10;
+/* El LED prende y apaga cada 200 ms. */
+static const uint32_t SIMPLE_BLINK_TIMEOUT = CLOCK_SECOND/5;
 
 /*---------------------------------------------------------------------------*/
 /* Callback Server UDP */
@@ -103,9 +104,6 @@ static void udp_rx_callback(struct simple_udp_connection *c,
 
     /* Imprimir callback message en un string */
     snprintf(strRx, sizeof(strRx), "%d bytes received correctly.", datalen);
-
-    /* Toggle LEDs */
-    leds_toggle(LEDS_RED);
 
     /* Log mensaje recibido */
     LOG_INFO("Received message '%.*s' from ", datalen, (char *) data);
@@ -183,21 +181,24 @@ int rx_handler(void)
 static void tx_blink_timer_callback(void *ptr)
 {
     estados_t* estado = (estados_t*)(ptr);
-
+    LOG_DBG("TX timer callback\n");
     do
     {
-        if (stimer_expired(&timer_general))
+        if (timer_expired(&timer_general))
         {
+            LOG_DBG("Timer general expirado, estado: %d\n", *estado);
             if (*estado == OFF)
             {
-                leds_off(LEDS_ALL);
+                leds_off(LEDS_GREEN);
             }
 
             if (*estado == ON)
             {
-                leds_on(LEDS_ALL);
+                leds_on(LEDS_GREEN);
             }
             break;
+        }else{
+            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT/2, tx_blink_timer_callback, estado);
         }
 
         leds_toggle(LEDS_GREEN);
@@ -209,23 +210,26 @@ static void tx_blink_timer_callback(void *ptr)
 static void rx_blink_timer_callback(void *ptr)
 {
     estados_t* estado = (estados_t*)(ptr);
-
+    LOG_DBG("RX timer callback. Rmnn: %ld\n", timer_remaining(&timer_general));
     do
     {
-        if (stimer_expired(&timer_general))
+        if (timer_expired(&timer_general))
         {
+            LOG_DBG("Timer general expirado, estado: %d\n", *estado);
             if (*estado == OFF)
             {
-                leds_off(LEDS_ALL);
+                leds_off(LEDS_RED);
             }
 
             if (*estado == ON)
             {
-                leds_on(LEDS_ALL);
+                leds_on(LEDS_RED);
             }
+            ctimer_stop(&blink_timer);
             break;
+        }else{
+            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT/2, rx_blink_timer_callback, estado);
         }
-
         leds_toggle(LEDS_RED);
 
     }while(0);
@@ -252,8 +256,6 @@ PROCESS_THREAD(server_pr, event, data){
     /* Defino al nodo como root de la red RPL */
     NETSTACK_ROUTING.root_start();
 
-    leds_toggle(LEDS_GREEN);
-
     while(1){
         PROCESS_WAIT_EVENT();
     }
@@ -265,10 +267,10 @@ PROCESS_THREAD(server_pr, event, data){
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(radio_sniffer_pr, ev, data)
 {
-    static struct ctimer blink_timer;
     static estados_t estado = OFF;
 
     PROCESS_BEGIN();
+    LOG_DBG("Estado: %d\n", estado);
 
     /* Alocar eventos. */
     radio_on_ev = process_alloc_event();
@@ -288,6 +290,9 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
     NETSTACK_RADIO.transmit = tx_handler;
     NETSTACK_RADIO.receiving_packet = rx_handler;
 
+    LOG_DBG("Blink: %d, Timeout: %d\n", SIMPLE_BLINK_TIMEOUT, BLINK_TIMEOUT/50);
+    leds_off(LEDS_ALL);
+
     while (1)
     {
         PROCESS_WAIT_EVENT();
@@ -296,7 +301,6 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
             /* Handler para cuando radio se enciende. */
             estado = ON;
             leds_on(LEDS_ALL);
-
         }
 
         if (ev == radio_off_ev)
@@ -311,8 +315,8 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
             /* Handler para cuando se transmite algo. */
             /* El canal por el cual se transmite está en (*data) */
             leds_off(LEDS_GREEN);
-            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, tx_blink_timer_callback, &estado);
-            stimer_set(&timer_general, BLINK_TIMEOUT);
+            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT/2, tx_blink_timer_callback, &estado);
+            timer_set(&timer_general, BLINK_TIMEOUT/2);
         }
 
         if (ev == radio_rx_ev)
@@ -321,7 +325,7 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
             /* El canal por el cual se transmite está en (*data) */
             leds_off(LEDS_RED);
             ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, rx_blink_timer_callback, &estado);
-            stimer_set(&timer_general, BLINK_TIMEOUT);
+            timer_set(&timer_general, BLINK_TIMEOUT/20);
         }
     }
 
