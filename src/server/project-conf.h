@@ -31,5 +31,10 @@
 #define WITH_SERVER_REPLY 1
 #define USABLE_RADIO_CHANNEL 16
 
+/*
+#define CONFIG_VER_CANAL
+#define CANAL_0 16
+#define CANAL_1 17
+*/
 #endif // SERVER_CFG
 
