@@ -6,6 +6,6 @@ MODULES_REL += $(TARGET)
 MAKE_MAC = MAKE_MAC_TSCH
 MODULES += os/services/shell
 
-CONTIKI = ../../../contiki-ng
+CONTIKI = ../../../../contiki-ng
 
 include $(CONTIKI)/Makefile.include

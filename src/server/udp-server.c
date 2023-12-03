@@ -49,7 +49,7 @@
 /* Defines Logging Modulo */
 /*---------------------------------------------------------------------------*/
 #define LOG_MODULE "Server"
-#define LOG_LEVEL LOG_LEVEL_DBG
+#define LOG_LEVEL LOG_LEVEL_INFO
 
 typedef enum estados
 {

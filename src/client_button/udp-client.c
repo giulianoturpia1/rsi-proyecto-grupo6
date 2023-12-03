@@ -20,6 +20,7 @@
 #include <sys/log.h> //Logging 
 #include <sys/ctimer.h>
 #include <sys/node-id.h> //Basic Node Handling Header
+#include <sys/etimer.h> //Event Timer
 #include <sys/timer.h>
 #include <uip.h> //IPV6 IP target
 
@@ -76,8 +77,6 @@ static process_event_t  radio_tx_ev;
 #ifndef _CONFIG_VER_CANAL
 static process_event_t  radio_rx_ev;
 #endif
-
-static radio_value_t ch_num;
 
 static struct etimer eTimerButton;
 
@@ -252,11 +251,6 @@ PROCESS_THREAD(udp_client_process, ev, data)
 
     /* Inicializar el Node ID */
     node_id_init();
-
-    /* Valores de Canal */
-    NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, USABLE_RADIO_CHANNEL);
-    NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &ch_num);
-    LOG_INFO("Rf channel: %d\n", ch_num);
 
     while(1){
         /* Timer set y wait. */
