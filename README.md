@@ -120,7 +120,7 @@ Mencionado esto, las plataformas que funcionan para el proyecto son las siguient
 
 + Launchpad CC1350/CC2650 de Texas Instruments:
   * TARGET=cc26x0-cc13x0
-  * BOARD=launchpad/cc1350 o BOARD=launchpad/cc2250
+  * BOARD=launchpad/cc1350 o BOARD=launchpad/cc2650
 
 + Nodos Remote de Zolertia (Zoul)
   * TARGET=zoul
