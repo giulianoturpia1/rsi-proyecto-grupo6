@@ -33,20 +33,34 @@
 /*---------------------------------------------------------------------------*/
 /* Defines específicos del proyecto. */
 /*---------------------------------------------------------------------------*/
-#define CONFIG_VER_CANAL
-#define CANAL_0 16
-#define CANAL_1 17
+//#define CONFIG_VER_CANAL
+#define CANAL_0 15
+#define CANAL_1 25
 
 #ifndef TSCH_CONF_DEFAULT_HOPPING_SEQUENCE
-#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE (uint8_t[]){ 16, 17 }
+#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE (uint8_t[]){ 15, 25 }
 #endif
 
 #ifndef TSCH_CONF_EB_PERIOD
-#define TSCH_CONF_EB_PERIOD 2*SEND_INTERVAL
+#define TSCH_CONF_EB_PERIOD (2*SEND_INTERVAL)
 #endif
 
 #ifndef TSCH_CONF_MAX_EB_PERIOD
-#define TSCH_CONF_MAX_EB_PERIOD 2*SEND_INTERVAL
+#define TSCH_CONF_MAX_EB_PERIOD (2*SEND_INTERVAL)
+#endif
+
+// Increase the timeouts of the network
+
+#ifndef TSCH_CONF_KEEPALIVE_TIMEOUT
+#define TSCH_CONF_KEEPALIVE_TIMEOUT (60*CLOCK_SECOND)
+#endif
+
+#ifndef TSCH_CONF_MAX_KEEPALIVE_TIMEOUT
+#define TSCH_CONF_MAX_KEEPALIVE_TIMEOUT (120*CLOCK_SECOND)
+#endif
+
+#ifndef TSCH_CONF_DESYNC_THRESHOLD
+#define TSCH_CONF_DESYNC_THRESHOLD (2*TSCH_CONF_MAX_KEEPALIVE_TIMEOUT)
 #endif
 
 #endif // SERVER_CFG

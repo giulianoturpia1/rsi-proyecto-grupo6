@@ -29,6 +29,7 @@
 /*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 /*---------------------------------------------------------------------------*/
 /* App Particular Inclusions */
@@ -78,8 +79,6 @@ static process_event_t  radio_tx_ev;
 static process_event_t  radio_rx_ev;
 #endif
 
-static struct etimer eTimerButton;
-
 #ifndef _CONFIG_VER_CANAL
 static struct ctimer blink_timer;
 /* Período durante el cual los LEDs blinkean. */
@@ -89,6 +88,7 @@ static const uint32_t BLINK_TIMEOUT = (2*CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
 static const uint32_t SIMPLE_BLINK_TIMEOUT = CLOCK_SECOND/5;
 #endif
 
+static uint8_t auxPost;
 static int (* on_function)(void);
 static int (* off_function)(void);
 static int (* tx_function)(unsigned short);
@@ -242,10 +242,14 @@ PROCESS_THREAD(udp_client_process, ev, data)
     static uip_ipaddr_t empty_addr;
     static char str[36];
 
-    /* Crear la IP vacia del servidor */
+    /* Crear la IP vacia del servidor */    
+    #if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_NATIVE
     uip_ip6addr(&empty_addr, 0xFD00, 0, 0, 0,0x200, 0, 0, 0);
     uip_ip6addr(&dest_ipaddr, 0xFD00, 0, 0, 0,0x200, 0, 0, 0);
-
+    #else
+    uip_ip6addr(&empty_addr, 0xFD00, 0, 0, 0,0x212, 0x4B00, 0xD2E, 0);
+    uip_ip6addr(&dest_ipaddr, 0xFD00, 0, 0, 0,0x212, 0x4B00, 0xD2E, 0);
+    #endif
     /* Registrar la conexion - UDP sin IP especificada */
     simple_udp_register(&udp_client, UDP_PORT, NULL, UDP_PORT, udp_rx_callback);
 
@@ -281,9 +285,13 @@ PROCESS_THREAD(udp_client_process, ev, data)
             }
         }
         if(ev == event_count_button){ //En caso de que se quiera un nodo en particular
-            uint8_t targetNode = *(int8_t*)data;
+            uint8_t targetNode = *(uint8_t*)data;
             LOG_INFO("Correctamente seleccionado: Nodo %d\n", targetNode);
+            #if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_NATIVE
             uip_ip6addr(&dest_ipaddr, 0xFD00, 0, 0, 0,0x200 + targetNode, targetNode, targetNode, targetNode);
+            #else
+            uip_ip6addr(&dest_ipaddr, 0xFD00, 0, 0, 0,0x212, 0x4B00, 0xD2E, targetNode);
+            #endif
         }
     }
     PROCESS_END();
@@ -298,7 +306,8 @@ PROCESS_THREAD(node_select_process, ev, data)
     PROCESS_BEGIN();
     
     /* Variables */
-    static int8_t buttonPressCount = 0;
+    static struct etimer eTimerButton;
+    static uint8_t buttonPressCount = 0;
 
     /* Registrar el evento */
     event_count_button = process_alloc_event();
@@ -312,13 +321,15 @@ PROCESS_THREAD(node_select_process, ev, data)
         if(ev == button_hal_press_event){
             etimer_restart(&eTimerButton); //Was previously done with restart
             buttonPressCount++;
+            buttonPressCount = (buttonPressCount % (NODE_AMOUNT + 1));
+            buttonPressCount = (buttonPressCount == 0) ? 1 : buttonPressCount; 
             LOG_INFO("Seleccionado: Nodo %d\n", buttonPressCount);
         }
-        if(etimer_expired(&eTimerButton) && buttonPressCount != 0){
-            int8_t auxPost = buttonPressCount;
+        if(etimer_expired(&eTimerButton) && buttonPressCount != 0){ //Si se presiono el boton y se espero el tiempo de espera, pues cada evento hace que entre al process
+            auxPost = buttonPressCount;
             process_post(&udp_client_process,event_count_button, &auxPost);
             
-            LOG_INFO("Objetivo actualizado a: Nodo %d\n", buttonPressCount);
+            LOG_INFO("Objetivo actualizado a: Nodo %d\n", auxPost);
             buttonPressCount = 0;
         }
     }
