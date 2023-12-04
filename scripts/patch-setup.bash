@@ -13,7 +13,7 @@ if [[ -z "$CONTIKI_PATH" || ! -d "$CONTIKI_PATH" ]]; then
 fi
 TSCH_STRETCH="$2"
 if [[ -z "$TSCH_STRETCH" || $TSCH_STRETCH -eq 0 ]]; then
-    echo "    * El estiramiento temporal no posee un valor valido, ejecute el script con un directorio valido"
+    echo "    * El estiramiento temporal no posee un valor valido, ejecute el script con un valor valido"
     exit 1
 fi
 SCRIPT_PATH="$(dirname "$0")"
@@ -31,12 +31,14 @@ CLIENT_FILE="$CLIENT_PATH/*.c"
 SERVER_FILE="$SERVER_PATH/*.c"
 TSCH_TIMING_FILE="$TSCH_LOCAL_PATH/tsch-timeslot-timing.c"
 CC13XX_CC26XX_TIMING_FILE="$CC13XX_CC26XX_PATH/rf-core/cc13xx-50kbps-tsch.c"
+TIMING_REMOTE_REVB_FILE="$PROJECT_PATH/patch/contiki-ng/arch/dev/radio/cc1200/cc1200-802154g-863-870-fsk-50kbps.c"
 
 echo "    + Modificando STRETCH en archivos locales..."
 sed -i "s|#define STRETCH [0-9]*\b|#define STRETCH $TSCH_STRETCH|g" $CLIENT_FILE
 sed -i "s|#define STRETCH [0-9]*\b|#define STRETCH $TSCH_STRETCH|g" $SERVER_FILE
 sed -i "s|#define STRETCH [0-9]*\b|#define STRETCH $TSCH_STRETCH|g" $TSCH_TIMING_FILE
 sed -i "s|#define STRETCH [0-9]*\b|#define STRETCH $TSCH_STRETCH|g" $CC13XX_CC26XX_TIMING_FILE
+sed -i "s|#define STRETCH [0-9]*\b|#define STRETCH $TSCH_STRETCH|g" $TIMING_REMOTE_REVB_FILE
 
 echo "    + Aplicando patch al código fuente de Contiki-NG..."
 cp -r "$PROJECT_PATH/patch/contiki-ng" $CONTIKI_PATH
