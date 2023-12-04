@@ -58,7 +58,7 @@
 #endif
 
 #ifndef DEFAULT_RADIO_DIV
-#define DEFAULT_RADIO_DIV 1
+#define DEFAULT_RADIO_DIV 100
 #endif
 
 typedef enum estados
@@ -82,10 +82,10 @@ static process_event_t  radio_rx_ev;
 #ifndef _CONFIG_VER_CANAL
 static struct ctimer blink_timer;
 /* Período durante el cual los LEDs blinkean. */
-static const uint32_t BLINK_TIMEOUT = (2*CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
+static const uint32_t BLINK_TIMEOUT = (STRETCH*CLOCK_SECOND)/(DEFAULT_RADIO_DIV);
 
-/* El LED prende y apaga cada 100 ms. */
-static const uint32_t SIMPLE_BLINK_TIMEOUT = CLOCK_SECOND/5;
+/* El LED prende y apaga cada x ms */
+static const uint32_t SIMPLE_BLINK_TIMEOUT = BLINK_TIMEOUT/5;
 #endif
 
 static uint8_t auxPost;
@@ -200,7 +200,7 @@ static void tx_blink_timer_callback(void *ptr)
         leds_off(LEDS_ALL);
             break;
         }else{
-            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT/2, tx_blink_timer_callback, estado);
+            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, tx_blink_timer_callback, estado);
         }
 
         leds_toggle(LEDS_GREEN);
@@ -220,7 +220,7 @@ static void rx_blink_timer_callback(void *ptr)
             leds_off(LEDS_ALL);
             break;
         }else{
-            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT/2, rx_blink_timer_callback, estado);
+            ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, rx_blink_timer_callback, estado);
         }
 
         leds_toggle(LEDS_RED);
@@ -406,7 +406,7 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
             #ifndef _CONFIG_VER_CANAL
             leds_off(LEDS_GREEN);
             ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, tx_blink_timer_callback, &estado);
-            timer_set(&timer_general, BLINK_TIMEOUT/2);
+            timer_set(&timer_general, BLINK_TIMEOUT);
             #else
             leds_on(LEDS_RED);
             NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &canal);
@@ -426,7 +426,7 @@ PROCESS_THREAD(radio_sniffer_pr, ev, data)
             /* El canal por el cual se transmite está en (*data) */
             leds_off(LEDS_RED);
             ctimer_set(&blink_timer, SIMPLE_BLINK_TIMEOUT, rx_blink_timer_callback, &estado);
-            timer_set(&timer_general, BLINK_TIMEOUT/2);
+            timer_set(&timer_general, BLINK_TIMEOUT);
         }
         #endif
     }

@@ -191,6 +191,12 @@ Un ejemplo posible para cargar a un launchpad puede ser el siguiente:
 make TARGET=cc26x0-cc13x0 BOARD=launchpad/cc1350 NODEID=4 MAKE_WITH_ORCHESTRA=1 MAKE_WITH_STORING_ROUTING=0 udp-client.upload PORT=/dev/ttyACM0
 ```
 
+En caso de querer ver los logs del nodo, se puede conectar al "shell" del nodo con la siguiente sintaxis de comando(utilizando el mismo puerto que antes):
+
+```
+make TARGET=xxxxx BOARD=xxxxx login PORT=/dev/ttyACM0
+```
+
 ### 3.2.2. Nodo Servidor
 
 4. Para ello ejecutar, en la misma terminal de los pasos 1. y 2.:
@@ -238,4 +244,10 @@ Un ejemplo posible para cargar a un launchpad puede ser el siguiente:
 
 ```
 make TARGET=cc26x0-cc13x0 BOARD=launchpad/cc1350 NODEID=1 MAKE_WITH_ORCHESTRA=1 MAKE_WITH_STORING_ROUTING=0 udp-server.upload PORT=/dev/ttyACM0
+```
+
+En caso de querer ver los logs del nodo, se puede conectar al "shell" del nodo con la siguiente sintaxis de comando(utilizando el mismo puerto que antes):
+
+```
+make TARGET=xxxxx BOARD=xxxxx login PORT=/dev/ttyACM0
 ```

@@ -34,7 +34,7 @@
 /*---------------------------------------------------------------------------*/
 /* Defines específicos del proyecto. */
 /*---------------------------------------------------------------------------*/
-//#define CONFIG_VER_CANAL
+#define CONFIG_VER_CANAL
 #define CANAL_0 15
 #define CANAL_1 25
 
